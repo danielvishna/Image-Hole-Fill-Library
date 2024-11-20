@@ -8,25 +8,16 @@ import java.util.*;
 public class HoleFilling {
 
 
-    Mat image;
-
-    class Point extends Tuple {
-        Tuple<Integer, Integer> point;
-        Point(int row, int col){
-            super(row, col);
-//            this.point = new Tuple<>(row, col);
-        }
-        public int getRow() {
-            return this.point.getFirst();
-        }
-        public int getColumn() {
-            return this.point.getSecond();
-        }
-    }
+    private final Mat image;
+    private final WeightingFunction weightingFunction;
+    private final Connectivity connectivity;
 
 
-    public HoleFilling(Mat image){
+
+    public HoleFilling(Mat image,  WeightingFunction weightingFunction, Connectivity connectivity){
         this.image = image;
+        this.weightingFunction = weightingFunction;
+        this.connectivity = connectivity;
     }
 
     private double distance(Point u, Point v, int z, double epsilon){
@@ -35,58 +26,58 @@ public class HoleFilling {
     }
 
     private double culColor(Point hole, HashSet<Point> bound){
-        double mone = 0;
-        double mechane = 0;
-        for (Point integerIntegerTuple : bound) {
-            double pixelColor = this.image.get(integerIntegerTuple.getRow(), integerIntegerTuple.getColumn())[0];
-            double tmp = this.distance(integerIntegerTuple, hole, 3, 0.01);
-            mone += pixelColor * tmp;
-            mechane += tmp;
+        double numerator = 0;
+        double denominator = 0;
+        for (Point boundaryPixel  : bound) {
+            double pixelColor = this.image.get(boundaryPixel .getRow(), boundaryPixel .getColumn())[0];
+            double weight  = this.weightingFunction.calculate(boundaryPixel , hole);
+            numerator += pixelColor * weight;
+            denominator += weight;
         }
-        return  mone / mechane;
+        return  numerator / denominator;
     }
 
     public Mat getFilledImage(){
         Tuple<List<Point>, HashSet<Point>> holeBound = this.FindHoleAndBound();
-        List<Tuple<Integer, Integer>> hole = holeBound.getFirst();
-        HashSet<Tuple<Integer, Integer>> bound = holeBound.getSecond();
-        for (Tuple<Integer, Integer> currHole : hole) {
+        List<Point> hole = holeBound.getFirst();
+        HashSet<Point> bound = holeBound.getSecond();
+        for (Point currHole : hole) {
             this.image.put(currHole.getRow(),  currHole.getColumn(), this.culColor(currHole, bound));
         }
         return this.image;
 
     }
 
-    private Tuple<List<Tuple<Integer, Integer>>, HashSet<Tuple<Integer, Integer>>> BFS(int row, int col){
-        Queue<Tuple<Integer, Integer>> q = new LinkedList<>();
-        HashSet<Tuple<Integer, Integer>> visited = new HashSet<>();
-        List<Tuple<Integer, Integer>> hole = new ArrayList<>();
-        HashSet<Tuple<Integer, Integer>> bound = new HashSet<>();
-        Tuple<Integer, Integer> firstPixelHole = new Tuple<>(row, col);
-        visited.add(firstPixelHole);
-        hole.add(firstPixelHole);
-        q.add(firstPixelHole);
-        while (!q.isEmpty()){
-            Tuple<Integer, Integer> curr = q.poll();
-            for(int c = Math.max(0, curr.getColumn() - 1); c < Math.min(this.image.width(), curr.getColumn() + 2); c ++){
-                for(int r = Math.max(0, curr.getRow() - 1); r < Math.min(this.image.height(), curr.getRow() + 2); r ++){
-                    Tuple<Integer, Integer> currPixel = new Tuple<>(r, c);
-                    if(!visited.contains(currPixel)){
-                        if(this.image.get(r, c)[0] == -1){
-                            hole.add(currPixel);
-                            q.add(currPixel);
+    private Tuple<List<Point>, HashSet<Point>> BFS(int startRow, int startCol){
+        Queue<Point> queue = new LinkedList<>();
+        HashSet<Point> visited = new HashSet<>();
+        List<Point> hole = new ArrayList<>();
+        HashSet<Point> boundary = new HashSet<>();
+        Point start = new Point(startRow, startCol);
+
+        visited.add(start);
+        hole.add(start);
+        queue.add(start);
+        while (!queue.isEmpty()){
+            Point current = queue.poll();
+            for (Point neighbor : this.connectivity.getNeighbors(current.getRow(), current.getColumn(), image.height(), image.width())) {
+                if (!visited.contains(neighbor)) {
+                    double pixelValue = image.get(neighbor.getRow(), neighbor.getColumn())[0];
+                        if(pixelValue == -1){
+                            hole.add(neighbor);
+                            queue.add(neighbor);
                         }
                         else {
-                            bound.add(currPixel);
+                            boundary.add(neighbor);
                         }
-                        visited.add(currPixel);
+                        visited.add(neighbor);
 
-                    }
+
                 }
 
             }
         }
-        Tuple<List<Tuple<Integer, Integer>>, HashSet<Tuple<Integer, Integer>>> holeAndBound =  new Tuple<>(hole, bound);
+        Tuple<List<Point>, HashSet<Point>> holeAndBound =  new Tuple<>(hole, boundary);
         return holeAndBound;
 
     }
@@ -98,7 +89,7 @@ public class HoleFilling {
                 double grayscale = this.image.get(r, c)[0];
                 if (grayscale == -1.0){
                     Tuple<List<Point>, HashSet<Point>> holeBound = this.BFS(r,c);
-                    System.out.println(holeBound.first.size());
+                    System.out.println(holeBound.getFirst().size());
                     return holeBound;
                 }
 

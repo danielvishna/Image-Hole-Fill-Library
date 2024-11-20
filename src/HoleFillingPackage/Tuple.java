@@ -12,7 +12,6 @@ class Tuple<T, U> implements Serializable {
             this.first = first;
             this.second = second;
         }
-
         public T getFirst() {
             return first;
         }
