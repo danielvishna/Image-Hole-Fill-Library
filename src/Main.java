@@ -1,5 +1,3 @@
-// Press Shift twice to open the Search Everywhere dialog and type `show whitespaces`,
-// then press Enter. You can now see whitespace characters in your code.
 import HoleFillingPackage.HoleFilling;
 import HoleFillingPackage.HoleFillingFactory;
 import org.opencv.core.Core;
@@ -7,53 +5,89 @@ import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
-
-
 public class Main {
     public static void main(String[] args) {
+        if (args.length < 4) {
+            System.out.println("Usage: java Main <input_image_path> <mask_image_path> <output_image_path> " +
+                    "[weighting_function_type] [z] [epsilon] [connectivity_type]");
+            return;
+        }
+
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-        Mat imagRGB = new Imgcodecs().imread(".\\src\\Lenna.png");
-        Mat maskRGB = new Imgcodecs().imread(".\\src\\Mask.png");
 
-        Mat imageGray = new Mat(imagRGB.size(0), imagRGB.size(1), 3);
-        Mat maskGray = new Mat();
+        // Parse command-line arguments
+        String inputImagePath = args[0];
+        String maskImagePath = args[1];
+        String outputImagePath = "output.png";
+        String weightingFunctionType = "default";
+        int z = args.length > 4 ? Integer.parseInt(args[2]) : 3;
+        double epsilon = args.length > 5 ? Double.parseDouble(args[3]) : 0.01;
+        String connectivityType = args.length > 6 ? args[4] : "8-connected";
 
+        try {
+            // Load images
+            System.out.println("Loading images...");
+            Mat inputImage = Imgcodecs.imread(inputImagePath);
+            Mat maskImage = Imgcodecs.imread(maskImagePath);
 
-        Imgproc.cvtColor(imagRGB, imageGray, Imgproc.COLOR_RGB2GRAY);
-        Imgproc.cvtColor(maskRGB, maskGray, Imgproc.COLOR_RGB2GRAY);
+            if (inputImage.empty() || maskImage.empty()) {
+                System.err.println("Error: Unable to load input or mask images.");
+                return;
+            }
 
-        Mat combinedImage = new Mat(imagRGB.size(0), imagRGB.size(1), 3);
+            // Convert images to grayscale
+            Mat inputGray = new Mat();
+            Mat maskGray = new Mat();
+            Imgproc.cvtColor(inputImage, inputGray, Imgproc.COLOR_RGB2GRAY);
+            Imgproc.cvtColor(maskImage, maskGray, Imgproc.COLOR_RGB2GRAY);
 
-        for (int x = 0; x < maskGray.width(); x++) {
-            for (int y = 0; y < maskGray.height(); y++) {
-                double[] grayscale = maskGray.get(y, x);
-                grayscale[0] = grayscale[0] / 255;
-                if (grayscale[0] <= 0.5)
-                {
-                    grayscale = new double[1];
-                    grayscale[0]  = -1.0;
-                    combinedImage.put(y, x, grayscale);
-                }
-                else{
-                    grayscale = imageGray.get(y, x);
-//                    grayscale[0] = grayscale[0] / 255;
-                    combinedImage.put(y, x, grayscale);
+            if (inputGray.height() != maskGray.height() || inputGray.width() != maskGray.width() ) {
+                System.err.println("Error: Input image and mask must have the same dimensions.");
+                return;
+            }
+
+            // Combine input image and mask
+            Mat combinedImage = new Mat(inputGray.size(0), inputGray.size(1), 3);
+            for (int x = 0; x < maskGray.width(); x++) {
+                for (int y = 0; y < maskGray.height(); y++) {
+                    double[] grayscale = maskGray.get(y, x);
+                    grayscale[0] /= 255;
+                    if (grayscale[0] <= 0.5) {
+                        grayscale[0] = -1.0;
+                        combinedImage.put(y, x, grayscale);
+                    } else {
+                        combinedImage.put(y, x, inputGray.get(y, x));
+                    }
                 }
             }
 
+            // Create HoleFilling instance using factory
+            HoleFilling holeFilling = HoleFillingFactory.createHoleFilling(
+                    combinedImage,
+                    weightingFunctionType,
+                    z,
+                    epsilon,
+                    connectivityType
+            );
+
+            // Fill the hole
+            System.out.println("Filling the hole...");
+            Mat filledImage = holeFilling.getFilledImage();
+            if(filledImage == null){
+                System.err.println("Error: Unable find the hole"); //todo: may need to be change!
+            }
+            else {
+                System.out.println("Saving the filled image...");
+                Imgcodecs.imwrite(outputImagePath, filledImage);
+
+                System.out.println("Hole filling completed successfully!");
+            }
+
+            // Save the output
+
+        } catch (Exception e) {
+            System.err.println("Error: " + e.getMessage());
+            e.printStackTrace();
         }
-        HoleFilling holeFilling = HoleFillingFactory.createHoleFilling(
-                combinedImage,
-                "default", // Weighting function type
-                3,         // z parameter
-                0.01,      // epsilon parameter
-                "8-connected" // Connectivity type
-        );
-
-        Mat filledImage = holeFilling.getFilledImage();
-        Imgcodecs.imwrite("output.png", filledImage);
-
-
-
     }
 }

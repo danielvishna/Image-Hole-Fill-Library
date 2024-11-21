@@ -1,7 +1,6 @@
 package HoleFillingPackage;
-
+import java.util.concurrent.*;
 import org.opencv.core.Mat;
-import java.io.Serializable;
 
 
 import java.util.*;
@@ -20,15 +19,11 @@ public class HoleFilling {
         this.connectivity = connectivity;
     }
 
-    private double distance(Point u, Point v, int z, double epsilon){
-        double ans = Math.pow(Math.pow(v.getRow() -u.getRow(), 2) + Math.pow(v.getColumn() -u.getColumn(), 2), (double) z / 2);
-        return 1 / (ans + epsilon);
-    }
 
-    private double culColor(Point hole, HashSet<Point> bound){
+    private synchronized double culColor(Point hole, HashSet<Point> boundary){
         double numerator = 0;
         double denominator = 0;
-        for (Point boundaryPixel  : bound) {
+        for (Point boundaryPixel  : boundary) {
             double pixelColor = this.image.get(boundaryPixel .getRow(), boundaryPixel .getColumn())[0];
             double weight  = this.weightingFunction.calculate(boundaryPixel , hole);
             numerator += pixelColor * weight;
@@ -39,11 +34,37 @@ public class HoleFilling {
 
     public Mat getFilledImage(){
         Tuple<List<Point>, HashSet<Point>> holeBound = this.FindHoleAndBound();
-        List<Point> hole = holeBound.getFirst();
-        HashSet<Point> bound = holeBound.getSecond();
-        for (Point currHole : hole) {
-            this.image.put(currHole.getRow(),  currHole.getColumn(), this.culColor(currHole, bound));
+        if(holeBound == null || holeBound.getFirst() == null || holeBound.getSecond() == null){
+            return null;
         }
+
+        List<Point> hole = holeBound.getFirst();
+        HashSet<Point> boundary = holeBound.getSecond();
+        // Create a thread pool
+        ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+        List<Future<?>> futures = new ArrayList<>();
+        for (Point holePixel : hole) {
+            Future<?> future = executor.submit(() -> {
+                double colorValue = this.culColor(holePixel, boundary);
+                synchronized (this.image) {
+                    this.image.put(holePixel.getRow(), holePixel.getColumn(), colorValue);
+                }
+            });
+            futures.add(future);
+
+        }
+        // Wait for all threads to complete
+        for (Future<?> future : futures) {
+            try {
+                future.get();
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
+
+        // Shut down the executor
+        executor.shutdown();
+
         return this.image;
 
     }
@@ -77,25 +98,23 @@ public class HoleFilling {
 
             }
         }
-        Tuple<List<Point>, HashSet<Point>> holeAndBound =  new Tuple<>(hole, boundary);
-        return holeAndBound;
+        return new Tuple<>(hole, boundary);
 
     }
 
-    public Tuple<List<Point>, HashSet<Point> >  FindHoleAndBound(){ //todo: change the func to privet
+    private Tuple<List<Point>, HashSet<Point> >  FindHoleAndBound(){
 
         for (int c = 0; c < this.image.width(); c++) {
             for (int r = 0; r < this.image.height(); r++) {
                 double grayscale = this.image.get(r, c)[0];
                 if (grayscale == -1.0){
-                    Tuple<List<Point>, HashSet<Point>> holeBound = this.BFS(r,c);
-                    System.out.println(holeBound.getFirst().size());
-                    return holeBound;
+                    return this.BFS(r,c);
                 }
 
             }
 
         }
+        System.out.println("What!!!");
         return null; // TODO: do someting here
     }
     
