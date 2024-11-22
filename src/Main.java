@@ -1,9 +1,10 @@
-import HoleFillingPackage.HoleFilling;
-import HoleFillingPackage.HoleFillingFactory;
+import HoleFillingPackage.*;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
+
+import java.lang.reflect.Type;
 
 public class Main {
     public static void main(String[] args) {
@@ -18,8 +19,8 @@ public class Main {
         // Parse command-line arguments
         String inputImagePath = args[0];
         String maskImagePath = args[1];
-        String outputImagePath = "output.png";
-        String weightingFunctionType = "default";
+        String outputImagePath = "output.png"; // todo:
+        IWeightingFunctionFactory weightingFunctionType = new DefaultWeightingFunctionFactory();
         int z = args.length > 4 ? Integer.parseInt(args[2]) : 3;
         double epsilon = args.length > 5 ? Double.parseDouble(args[3]) : 0.01;
         String connectivityType = args.length > 6 ? args[4] : "8-connected";

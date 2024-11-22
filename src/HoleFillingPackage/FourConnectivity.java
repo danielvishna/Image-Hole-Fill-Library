@@ -3,6 +3,8 @@ package HoleFillingPackage;
 import java.util.ArrayList;
 import java.util.List;
 
+import java.awt.Point;
+
 public class FourConnectivity implements Connectivity {
     @Override
     public List<Point> getNeighbors(int row, int col, int maxRow, int maxCol) {
