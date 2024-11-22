@@ -1,7 +1,7 @@
 package HoleFillingPackage.tests;
-import HoleFillingPackage.Connectivity;
-import HoleFillingPackage.EightConnectivity;
-import HoleFillingPackage.FourConnectivity;
+import HoleFillingPackage.Connectivity.Connectivity;
+import HoleFillingPackage.Connectivity.EightConnectivity;
+import HoleFillingPackage.Connectivity.FourConnectivity;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;

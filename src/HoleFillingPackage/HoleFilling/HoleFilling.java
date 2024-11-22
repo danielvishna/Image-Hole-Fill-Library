@@ -1,7 +1,9 @@
-package HoleFillingPackage;
+package HoleFillingPackage.HoleFilling;
 
 import java.util.concurrent.*;
 
+import HoleFillingPackage.Connectivity.Connectivity;
+import HoleFillingPackage.WeightingFunction.IWeightingFunction;
 import org.opencv.core.Mat;
 
 import java.awt.Point;
@@ -13,7 +15,7 @@ public class HoleFilling {
 
 
     private final Mat image;
-    private final IWeightingFunction IWeightingFunction;
+    private final HoleFillingPackage.WeightingFunction.IWeightingFunction IWeightingFunction;
     private final Connectivity connectivity;
 
 
@@ -24,7 +26,7 @@ public class HoleFilling {
     }
 
 
-    private double culColor(Point hole, HashSet<Point> boundary) { //TODO: may need hear synchronized
+    private double culColor(Point hole, HashSet<Point> boundary) {
         double numerator = 0;
         double denominator = 0;
         for (Point boundaryPixel : boundary) {
@@ -36,7 +38,7 @@ public class HoleFilling {
         return numerator / denominator;
     }
 
-    public Mat getFilledImage() { //TODO: maybe I dont need to use threads because the time to create them is more expensive then to run on all the hole.
+    public Mat getFilledImage() {
         Tuple<List<Point>, HashSet<Point>> holeBound = this.FindHoleAndBound();
         if (holeBound == null || holeBound.getFirst() == null || holeBound.getSecond() == null) {
             return null;
@@ -118,7 +120,6 @@ public class HoleFilling {
             }
 
         }
-        System.out.println("What!!!");
         return null; // TODO: do someting here
     }
 

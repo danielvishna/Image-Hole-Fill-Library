@@ -1,4 +1,4 @@
-package HoleFillingPackage;
+package HoleFillingPackage.HoleFilling;
 
 import java.io.Serializable;
 import java.util.Objects;

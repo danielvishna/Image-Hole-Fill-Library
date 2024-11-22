@@ -1,7 +1,7 @@
 package HoleFillingPackage.tests;
 
-import HoleFillingPackage.DefaultWeightingFunction;
-import HoleFillingPackage.IWeightingFunction;
+import HoleFillingPackage.WeightingFunction.DefaultWeightingFunction;
+import HoleFillingPackage.WeightingFunction.IWeightingFunction;
 import org.junit.jupiter.api.Test;
 
 import java.awt.*;

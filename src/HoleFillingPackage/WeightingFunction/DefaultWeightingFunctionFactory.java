@@ -1,4 +1,4 @@
-package HoleFillingPackage;
+package HoleFillingPackage.WeightingFunction;
 
 public class DefaultWeightingFunctionFactory implements  IWeightingFunctionFactory {
 

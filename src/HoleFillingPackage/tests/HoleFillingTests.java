@@ -1,8 +1,8 @@
 package HoleFillingPackage.tests;
 
-import HoleFillingPackage.DefaultWeightingFunction;
-import HoleFillingPackage.EightConnectivity;
-import HoleFillingPackage.HoleFilling;
+import HoleFillingPackage.WeightingFunction.DefaultWeightingFunction;
+import HoleFillingPackage.Connectivity.EightConnectivity;
+import HoleFillingPackage.HoleFilling.HoleFilling;
 import org.junit.jupiter.api.Test;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;

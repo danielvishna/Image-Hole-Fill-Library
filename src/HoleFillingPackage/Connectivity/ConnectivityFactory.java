@@ -1,11 +1,12 @@
-package HoleFillingPackage;
+package HoleFillingPackage.Connectivity;
 
 public class ConnectivityFactory {
     public static Connectivity createConnectivity(String type) {
-        switch (type.toLowerCase()) {
-            case "4-connected":
+        ConnectivityEnum connectivityType = ConnectivityEnum.valueOf(type);
+        switch (connectivityType) {
+            case FourWayConnectivity:
                 return new FourConnectivity();
-            case "8-connected":
+            case EightWayConnectivity:
                 return new EightConnectivity();
             default:
                 throw new IllegalArgumentException("Unknown connectivity type: " + type);

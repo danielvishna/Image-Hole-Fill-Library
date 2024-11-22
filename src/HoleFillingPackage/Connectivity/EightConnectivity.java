@@ -1,4 +1,4 @@
-package HoleFillingPackage;
+package HoleFillingPackage.Connectivity;
 
 import java.util.ArrayList;
 import java.util.List;

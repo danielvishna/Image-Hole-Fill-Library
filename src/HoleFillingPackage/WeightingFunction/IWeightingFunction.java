@@ -1,4 +1,4 @@
-package HoleFillingPackage;
+package HoleFillingPackage.WeightingFunction;
 
 import java.awt.Point;
 
