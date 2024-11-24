@@ -1,12 +1,15 @@
 package HoleFillingPackage.HoleFilling;
 
+import java.awt.*;
+import java.util.List;
 import java.util.concurrent.*;
 
 import HoleFillingPackage.Connectivity.Connectivity;
+import HoleFillingPackage.MyPoint;
 import HoleFillingPackage.WeightingFunction.IWeightingFunction;
 import org.opencv.core.Mat;
 
-import java.awt.Point;
+//import java.awt.Point;
 
 
 import java.util.*;
@@ -14,9 +17,9 @@ import java.util.*;
 public class HoleFilling {
 
 
-    private final Mat image;
-    private final HoleFillingPackage.WeightingFunction.IWeightingFunction IWeightingFunction;
-    private final Connectivity connectivity;
+    protected final Mat image;
+    protected final HoleFillingPackage.WeightingFunction.IWeightingFunction IWeightingFunction;
+    protected final Connectivity connectivity;
 
 
     public HoleFilling(Mat image, IWeightingFunction IWeightingFunction, Connectivity connectivity) {
@@ -38,15 +41,7 @@ public class HoleFilling {
         return numerator / denominator;
     }
 
-    public Mat getFilledImage() {
-        Tuple<List<Point>, HashSet<Point>> holeBound = this.FindHoleAndBound();
-        if (holeBound == null || holeBound.getFirst() == null || holeBound.getSecond() == null) {
-            return null;
-        }
-
-        List<Point> hole = holeBound.getFirst();
-        HashSet<Point> boundary = holeBound.getSecond();
-        // Create a thread pool
+    protected void filledPixels(List<Point> hole, HashSet<Point> boundary){
         ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         List<Future<?>> futures = new ArrayList<>();
         for (Point holePixel : hole) {
@@ -59,7 +54,6 @@ public class HoleFilling {
             futures.add(future);
 
         }
-        // Wait for all threads to complete
         for (Future<?> future : futures) {
             try {
                 future.get();
@@ -68,9 +62,19 @@ public class HoleFilling {
             }
         }
 
-        // Shut down the executor
         executor.shutdown();
 
+    }
+
+    public Mat getFilledImage() {
+        Tuple<List<Point>, HashSet<Point>> holeBound = this.FindHoleAndBound();
+        if (holeBound == null || holeBound.getFirst() == null || holeBound.getSecond() == null) {
+            return null;
+        }
+
+        List<Point> hole = holeBound.getFirst();
+        HashSet<Point> boundary = holeBound.getSecond();
+        this.filledPixels(hole, boundary);
         return this.image;
 
     }
@@ -108,7 +112,7 @@ public class HoleFilling {
         visited.add(neighbor);
     }
 
-    private Tuple<List<Point>, HashSet<Point>> FindHoleAndBound() {
+    protected Tuple<List<Point>, HashSet<Point>> FindHoleAndBound() {
 
         for (int c = 0; c < this.image.width(); c++) {
             for (int r = 0; r < this.image.height(); r++) {
@@ -120,7 +124,7 @@ public class HoleFilling {
             }
 
         }
-        return null; // TODO: do someting here
+        return null;
     }
 
 }

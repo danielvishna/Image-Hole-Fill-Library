@@ -9,10 +9,14 @@ public class FourConnectivity implements Connectivity {
     @Override
     public List<Point> getNeighbors(int row, int col, int maxRow, int maxCol) {
         List<Point> neighbors = new ArrayList<>();
-        if (row > 0) neighbors.add(new Point(row - 1, col)); // North
-        if (row < maxRow - 1) neighbors.add(new Point(row + 1, col)); // South
-        if (col > 0) neighbors.add(new Point(row, col - 1)); // West
-        if (col < maxCol - 1) neighbors.add(new Point(row, col + 1)); // East
+        int[][] directions =  new int[][]{{0, -1}, {-1, 0}, {1, 0}, {0, 1}};
+        for (int[] direction : directions) {
+            int newRow = row + direction[0];
+            int newCol = col + direction[1];
+            if (newRow >= 0 && newRow < maxRow && newCol >= 0 && newCol < maxCol) {
+                neighbors.add(new Point(newRow, newCol));
+            }
+        }
         return neighbors;
     }
 }

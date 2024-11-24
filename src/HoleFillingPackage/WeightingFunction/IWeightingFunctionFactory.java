@@ -1,5 +1,5 @@
 package HoleFillingPackage.WeightingFunction;
 
 public interface IWeightingFunctionFactory {
-    IWeightingFunction Create(int z, double epsilon);
+    IWeightingFunction Create(int z, float epsilon);
 }

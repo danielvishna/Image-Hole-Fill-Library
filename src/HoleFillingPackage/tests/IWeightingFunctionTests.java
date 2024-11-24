@@ -12,7 +12,7 @@ class IWeightingFunctionTests {
 
     @Test
     void testDefaultWeightingFunction() {
-        IWeightingFunction IWeightingFunction = new DefaultWeightingFunction(2, 0.01);
+        IWeightingFunction IWeightingFunction = new DefaultWeightingFunction(2, (float)0.01);
         Point u = new Point(0, 0);
         Point v = new Point(3, 4);
         double weight = IWeightingFunction.calculate(u, v);

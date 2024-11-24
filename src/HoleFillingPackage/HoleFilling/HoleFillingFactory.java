@@ -7,7 +7,7 @@ import HoleFillingPackage.WeightingFunction.IWeightingFunctionFactory;
 import org.opencv.core.Mat;
 
 public class HoleFillingFactory {
-    public static HoleFilling createHoleFilling(Mat image, IWeightingFunctionFactory weightingFunctionFactory, int z, double epsilon, String connectivityType) throws Exception {
+    public static HoleFilling createHoleFilling(Mat image, IWeightingFunctionFactory weightingFunctionFactory, int z, float epsilon, String connectivityType) throws Exception {
         IWeightingFunction weightingFunction;
         weightingFunction = weightingFunctionFactory.Create(z, epsilon);
         Connectivity connectivity = ConnectivityFactory.createConnectivity(connectivityType);

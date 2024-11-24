@@ -12,31 +12,23 @@ public class Main {
             System.out.println("Usage: java Main <input_image_path> <mask_image_path> " + "[weighting_function_type] [z] [epsilon] [FourWayConnectivity | EightWayConnectivity]");
             return;
         }
-
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-
         String inputImagePath = args[0];
         String maskImagePath = args[1];
         String outputImagePath = "output.png";
         IWeightingFunctionFactory weightingFunctionType = new DefaultWeightingFunctionFactory();
         int z = Integer.parseInt(args[2]);
-        double epsilon = Double.parseDouble(args[3]);
+        float epsilon = Float.parseFloat(args[3]);
         String connectivityType = args[4];
 
         try {
             System.out.println("Loading images...");
-            Image inputImage = new Image(inputImagePath);
-            Image maskImage = new Image(maskImagePath);
-
-            if (!inputImage.loadImage() || !maskImage.loadImage()) {
-                System.err.println("Error: Unable to load input or mask images.");
+            Image inputImage = Image.createMaskImage(inputImagePath, maskImagePath);
+            if(inputImage == null){
                 return;
             }
-
-            inputImage.combineImage(maskImage.getImageMat());
-
+//            OptimizedHoleFilling holeFilling = new OptimizedHoleFilling(inputImage.getImageMat(), ConnectivityFactory.createConnectivity(connectivityType), weightingFunctionType.Create(z, epsilon), 5);
             HoleFilling holeFilling = HoleFillingFactory.createHoleFilling(inputImage.getImageMat(), weightingFunctionType, z, epsilon, connectivityType);
-
             System.out.println("Filling the hole...");
             Mat filledImage = holeFilling.getFilledImage();
             if (filledImage == null) {
@@ -46,7 +38,6 @@ public class Main {
                 inputImage.setImage(filledImage);
                 inputImage.setPath(outputImagePath);
                 inputImage.saveImage();
-
                 System.out.println("Hole filling completed successfully!");
             }
         } catch (Exception e) {

@@ -127,5 +127,17 @@ public class Image {
         Imgcodecs.imwrite(path, image);
     }
 
+    public static Image createMaskImage(String inputImagePath, String maskImagePath){
+        Image inputImage = new Image(inputImagePath);
+        Image maskImage = new Image(maskImagePath);
+        if (!inputImage.loadImage() || !maskImage.loadImage()) {
+            System.err.println("Error: Unable to load input or mask images.");
+            return null;
+        }
+
+        inputImage.combineImage(maskImage.getImageMat());
+        return inputImage;
+    }
+
 
 }

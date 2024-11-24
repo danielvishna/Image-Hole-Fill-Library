@@ -27,7 +27,7 @@ class HoleFillingTests {
 
         HoleFilling holeFilling = new HoleFilling(
                 image,
-                new DefaultWeightingFunction(2, 0.01),
+                new DefaultWeightingFunction(2, 0.01f),
                 new EightConnectivity()
         );
 
