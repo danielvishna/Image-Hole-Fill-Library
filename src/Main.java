@@ -1,8 +1,6 @@
-import HoleFillingPackage.*;
-import HoleFillingPackage.Connectivity.ConnectivityFactory;
 import HoleFillingPackage.HoleFilling.HoleFilling;
 import HoleFillingPackage.HoleFilling.HoleFillingFactory;
-import HoleFillingPackage.HoleFilling.OptimizedHoleFilling;
+import HoleFillingPackage.Image;
 import HoleFillingPackage.WeightingFunction.DefaultWeightingFunctionFactory;
 import HoleFillingPackage.WeightingFunction.IWeightingFunctionFactory;
 import org.opencv.core.Core;
@@ -16,11 +14,11 @@ public class Main {
             ProgramArguments programArgs = parseArguments(args);
             System.out.println("Loading images...");
             Image inputImage = Image.createMaskImage(programArgs.inputImagePath, programArgs.maskImagePath);
-            if(inputImage == null){
+            if (inputImage == null) {
                 return;
             }
             HoleFilling holeFilling = HoleFillingFactory.createHoleFilling(inputImage.getImageMat(),
-                    programArgs.weightingFunctionType, programArgs.z,programArgs.epsilon, programArgs.connectivityType, 7);
+                    programArgs.weightingFunctionType, programArgs.z, programArgs.epsilon, programArgs.connectivityType, 7);
 
             System.out.println("Filling the hole...");
             Mat filledImage = holeFilling.getFilledImage();
@@ -33,11 +31,9 @@ public class Main {
             inputImage.saveImage(programArgs.outputImagePath);
             System.out.println("Hole filling completed successfully!");
 
-        }
-        catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             System.err.println("Input Error: " + e.getMessage());
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.err.println("Error: " + e.getMessage());
             e.printStackTrace();
         }
@@ -52,20 +48,17 @@ public class Main {
         String maskImagePath = args[1];
         String outputImagePath = "output1.png";
         int z;
-        try {
-            z = Integer.parseInt(args[2]);
-            if (z <= 0) throw new IllegalArgumentException("z must be a positive integer.");
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid type for z. Expected a positive integer.");
-        }
-
         float epsilon;
         try {
+            z = Integer.parseInt(args[2]);
+            if (z <= 0) throw new IllegalArgumentException();
             epsilon = Float.parseFloat(args[3]);
-            if (epsilon <= 0) throw new IllegalArgumentException("epsilon must be a positive number.");
+            if (epsilon <= 0) throw new IllegalArgumentException();
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid type for epsilon. Expected a positive float.");
+            throw new IllegalArgumentException("Invalid type for z or epsilon.  z expected to be positive integer. " +
+                    "And epsilon expected to be positive float");
         }
+
 
         String connectivityType = args[4];
         if (!connectivityType.equals("FourWayConnectivity") && !connectivityType.equals("EightWayConnectivity")) {

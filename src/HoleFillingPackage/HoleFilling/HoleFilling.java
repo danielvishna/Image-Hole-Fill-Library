@@ -1,25 +1,21 @@
 package HoleFillingPackage.HoleFilling;
 
-import java.util.List;
-import java.util.concurrent.*;
-
 import HoleFillingPackage.Connectivity.Connectivity;
 import HoleFillingPackage.PixelPoint;
 import HoleFillingPackage.WeightingFunction.IWeightingFunction;
 import org.opencv.core.Mat;
 
-//import java.awt.Point;
-
-
 import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class HoleFilling {
-
 
     protected final Mat image;
     protected final HoleFillingPackage.WeightingFunction.IWeightingFunction IWeightingFunction;
     protected final Connectivity connectivity;
-
 
     public HoleFilling(Mat image, IWeightingFunction IWeightingFunction, Connectivity connectivity) {
         this.image = image;
@@ -32,7 +28,6 @@ public class HoleFilling {
         double numerator = 0;
         double denominator = 0;
         for (PixelPoint boundaryPixel : boundary) {
-//            double pixelColor = this.image.get((int) boundaryPixel.getY(), (int) boundaryPixel.getX())[0];
             double weight = this.IWeightingFunction.calculate(boundaryPixel, hole);
             numerator += boundaryPixel.getColor() * weight;
             denominator += weight;
@@ -40,7 +35,7 @@ public class HoleFilling {
         return numerator / denominator;
     }
 
-    protected void filledPixels(List<PixelPoint> hole, HashSet<PixelPoint> boundary){
+    protected void filledPixels(List<PixelPoint> hole, HashSet<PixelPoint> boundary) {
         ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         List<Future<?>> futures = new ArrayList<>();
         for (PixelPoint holePixel : hole) {

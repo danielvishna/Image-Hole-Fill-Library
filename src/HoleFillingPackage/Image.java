@@ -25,7 +25,7 @@ public class Image {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
         Mat imageRGB = Imgcodecs.imread(this.path);
         if (imageRGB.empty()) {
-            return false;
+            return true;
         }
         Mat imageGray = new Mat();
         Imgproc.cvtColor(imageRGB, imageGray, Imgproc.COLOR_RGB2GRAY);
@@ -55,7 +55,7 @@ public class Image {
         }
         executor.shutdown();
 
-        return !this.image.empty();
+        return this.image.empty();
     }
 
     public Mat getImageMat() {
@@ -98,7 +98,7 @@ public class Image {
         executor.shutdown();
     }
 
-    public void saveImage(String path){
+    public void saveImage(String path) {
         this.setPath(path);
         this.saveImage();
     }
@@ -132,10 +132,10 @@ public class Image {
         Imgcodecs.imwrite(path, image);
     }
 
-    public static Image createMaskImage(String inputImagePath, String maskImagePath){
+    public static Image createMaskImage(String inputImagePath, String maskImagePath) {
         Image inputImage = new Image(inputImagePath);
         Image maskImage = new Image(maskImagePath);
-        if (!inputImage.loadImage() || !maskImage.loadImage()) {
+        if (inputImage.loadImage() || maskImage.loadImage()) {
             System.err.println("Error: Unable to load input or mask images.");
             return null;
         }

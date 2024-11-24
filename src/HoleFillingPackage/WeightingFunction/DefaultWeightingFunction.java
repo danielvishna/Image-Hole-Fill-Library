@@ -1,6 +1,6 @@
 package HoleFillingPackage.WeightingFunction;
 
-import java.awt.Point;
+import java.awt.*;
 
 public class DefaultWeightingFunction implements IWeightingFunction {
     private final int z;

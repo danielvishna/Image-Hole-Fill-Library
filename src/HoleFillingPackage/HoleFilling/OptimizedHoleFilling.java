@@ -1,11 +1,12 @@
 package HoleFillingPackage.HoleFilling;
+
 import HoleFillingPackage.Connectivity.Connectivity;
+import HoleFillingPackage.PixelPoint;
 import HoleFillingPackage.WeightingFunction.IWeightingFunction;
 import org.opencv.core.Mat;
-import HoleFillingPackage.PixelPoint;
-
 
 import java.util.*;
+
 public class OptimizedHoleFilling extends HoleFilling {
 
     private int gridSizeX;
@@ -48,6 +49,7 @@ public class OptimizedHoleFilling extends HoleFilling {
         return representatives;
     }
 
+    @Override
     public Mat getFilledImage() {
         Tuple<List<PixelPoint>, HashSet<PixelPoint>> holeBoundary = FindHoleAndBound();
         if (holeBoundary == null) {
@@ -68,7 +70,7 @@ public class OptimizedHoleFilling extends HoleFilling {
         return this.image;
     }
 
-    public static PixelPoint calculateOptimalCellSize(HashSet<PixelPoint> boundaryPoints, int k) {
+    private static PixelPoint calculateOptimalCellSize(HashSet<PixelPoint> boundaryPoints, int k) {
         // Get bounding box of boundary points
         int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE;
         int maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE;
@@ -78,13 +80,12 @@ public class OptimizedHoleFilling extends HoleFilling {
             maxX = Math.max(maxX, p.x);
             maxY = Math.max(maxY, p.y);
         }
-        int gridSizeX = (int)((maxX - minX + 1) / Math.sqrt(k));
-        int gridSizeY = (int)((maxY - minY + 1) / Math.sqrt(k));
+        int gridSizeX = (int) ((maxX - minX + 1) / Math.sqrt(k));
+        int gridSizeY = (int) ((maxY - minY + 1) / Math.sqrt(k));
 
         return new PixelPoint(gridSizeX, gridSizeY);
 
     }
-
 
 
 }

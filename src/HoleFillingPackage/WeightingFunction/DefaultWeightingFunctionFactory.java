@@ -1,6 +1,6 @@
 package HoleFillingPackage.WeightingFunction;
 
-public class DefaultWeightingFunctionFactory implements  IWeightingFunctionFactory {
+public class DefaultWeightingFunctionFactory implements IWeightingFunctionFactory {
 
     @Override
     public IWeightingFunction Create(int z, float epsilon) {
