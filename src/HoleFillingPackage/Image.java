@@ -98,6 +98,11 @@ public class Image {
         executor.shutdown();
     }
 
+    public void saveImage(String path){
+        this.setPath(path);
+        this.saveImage();
+    }
+
     public void saveImage() {
         ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         List<Future<?>> futures = new ArrayList<>();

@@ -2,35 +2,39 @@ package HoleFillingPackage.HoleFilling;
 import HoleFillingPackage.Connectivity.Connectivity;
 import HoleFillingPackage.WeightingFunction.IWeightingFunction;
 import org.opencv.core.Mat;
-import java.awt.Point;
+import HoleFillingPackage.PixelPoint;
+
 
 import java.util.*;
 public class OptimizedHoleFilling extends HoleFilling {
 
-    private final int gridSize;
+    private int gridSizeX;
+    private int gridSizeY;
 
-    public OptimizedHoleFilling(Mat image, Connectivity connectivity, IWeightingFunction IWeightingFunction, int gridSize) {
+    private final int k;
+
+    public OptimizedHoleFilling(Mat image, Connectivity connectivity, IWeightingFunction IWeightingFunction, int k) {
         super(image, IWeightingFunction, connectivity);
-        this.gridSize = gridSize;
+        this.k = k;
     }
 
-    private Map<Point, List<Point>> divideBoundaryIntoGrids(HashSet<Point> boundary) {
-        Map<Point, List<Point>> grid = new HashMap<>();
-        for (Point boundaryPixel : boundary) {
-            int gridX = (int) (boundaryPixel.getX() / gridSize);
-            int gridY = (int) (boundaryPixel.getY() / gridSize);
-            Point gridCell = new Point(gridX, gridY);
+    private Map<PixelPoint, List<PixelPoint>> divideBoundaryIntoGrids(HashSet<PixelPoint> boundary) {
+        Map<PixelPoint, List<PixelPoint>> grid = new HashMap<>();
+        for (PixelPoint boundaryPixel : boundary) {
+            int gridX = (int) (boundaryPixel.getX() / gridSizeX);
+            int gridY = (int) (boundaryPixel.getY() / gridSizeY);
+            PixelPoint gridCell = new PixelPoint(gridX, gridY);
             grid.computeIfAbsent(gridCell, k -> new ArrayList<>()).add(boundaryPixel);
         }
         return grid;
     }
 
-    private List<GridRepresentative> calculateGridRepresentatives(Map<Point, List<Point>> grid) {
-        List<GridRepresentative> representatives = new ArrayList<>();
-        for (Map.Entry<Point, List<Point>> entry : grid.entrySet()) {
-            List<Point> points = entry.getValue();
+    private HashSet<PixelPoint> calculateGridRepresentatives(Map<PixelPoint, List<PixelPoint>> grid) {
+        HashSet<PixelPoint> representatives = new HashSet<>();
+        for (Map.Entry<PixelPoint, List<PixelPoint>> entry : grid.entrySet()) {
+            List<PixelPoint> points = entry.getValue();
             double meanX = 0, meanY = 0, meanColor = 0;
-            for (Point p : points) {
+            for (PixelPoint p : points) {
                 meanX += p.getX();
                 meanY += p.getY();
                 meanColor += this.image.get((int) p.getY(), (int) p.getX())[0];
@@ -39,46 +43,49 @@ public class OptimizedHoleFilling extends HoleFilling {
             meanX /= size;
             meanY /= size;
             meanColor /= size;
-            representatives.add(new GridRepresentative(meanX, meanY, meanColor));
+            representatives.add(new PixelPoint((int) Math.round(meanX), (int) Math.round(meanY), meanColor));
         }
         return representatives;
     }
 
     public Mat getFilledImage() {
-        Tuple<List<Point>, HashSet<Point>> holeBoundary = FindHoleAndBound();
+        Tuple<List<PixelPoint>, HashSet<PixelPoint>> holeBoundary = FindHoleAndBound();
         if (holeBoundary == null) {
             return null;
         }
 
-        List<Point> hole = holeBoundary.getFirst();
-        HashSet<Point> boundary = holeBoundary.getSecond();
+        List<PixelPoint> hole = holeBoundary.first();
+        HashSet<PixelPoint> boundary = holeBoundary.second();
 
-        Map<Point, List<Point>> grid = divideBoundaryIntoGrids(boundary);
-        List<GridRepresentative> representatives = calculateGridRepresentatives(grid);
+        PixelPoint gridSize = OptimizedHoleFilling.calculateOptimalCellSize(boundary, this.k);
+        this.gridSizeX = (int) gridSize.getX();
+        this.gridSizeY = (int) gridSize.getX();
 
-        for (Point holePixel : hole) {
-            double numerator = 0, denominator = 0;
-            for (GridRepresentative rep : representatives) {
-                Point repPoint = new Point((int) rep.meanX, (int) rep.meanY);
-                double weight = IWeightingFunction.calculate(repPoint, holePixel);
-                numerator += rep.meanColor * weight;
-                denominator += weight;
-            }
-            double filledColor = numerator / denominator;
-            image.put((int) holePixel.getY(), (int) holePixel.getX(), filledColor);
-        }
+        Map<PixelPoint, List<PixelPoint>> grid = divideBoundaryIntoGrids(boundary);
+        HashSet<PixelPoint> representatives = calculateGridRepresentatives(grid);
 
-        return image;
+        this.filledPixels(hole, representatives);
+        return this.image;
     }
 
-    private static class GridRepresentative {
-        double meanX, meanY, meanColor;
-
-        GridRepresentative(double meanX, double meanY, double meanColor) {
-            this.meanX = meanX;
-            this.meanY = meanY;
-            this.meanColor = meanColor;
+    public static PixelPoint calculateOptimalCellSize(HashSet<PixelPoint> boundaryPoints, int k) {
+        // Get bounding box of boundary points
+        int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE;
+        int maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE;
+        for (PixelPoint p : boundaryPoints) {
+            minX = Math.min(minX, p.x);
+            minY = Math.min(minY, p.y);
+            maxX = Math.max(maxX, p.x);
+            maxY = Math.max(maxY, p.y);
         }
+        int gridSizeX = (int)((maxX - minX + 1) / Math.sqrt(k));
+        int gridSizeY = (int)((maxY - minY + 1) / Math.sqrt(k));
+
+        return new PixelPoint(gridSizeX, gridSizeY);
+
     }
+
+
+
 }
 

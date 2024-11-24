@@ -1,11 +1,10 @@
 package HoleFillingPackage.HoleFilling;
 
-import java.awt.*;
 import java.util.List;
 import java.util.concurrent.*;
 
 import HoleFillingPackage.Connectivity.Connectivity;
-import HoleFillingPackage.MyPoint;
+import HoleFillingPackage.PixelPoint;
 import HoleFillingPackage.WeightingFunction.IWeightingFunction;
 import org.opencv.core.Mat;
 
@@ -29,22 +28,22 @@ public class HoleFilling {
     }
 
 
-    private double culColor(Point hole, HashSet<Point> boundary) {
+    private double culColor(PixelPoint hole, HashSet<PixelPoint> boundary) {
         double numerator = 0;
         double denominator = 0;
-        for (Point boundaryPixel : boundary) {
-            double pixelColor = this.image.get((int) boundaryPixel.getY(), (int) boundaryPixel.getX())[0];
+        for (PixelPoint boundaryPixel : boundary) {
+//            double pixelColor = this.image.get((int) boundaryPixel.getY(), (int) boundaryPixel.getX())[0];
             double weight = this.IWeightingFunction.calculate(boundaryPixel, hole);
-            numerator += pixelColor * weight;
+            numerator += boundaryPixel.getColor() * weight;
             denominator += weight;
         }
         return numerator / denominator;
     }
 
-    protected void filledPixels(List<Point> hole, HashSet<Point> boundary){
+    protected void filledPixels(List<PixelPoint> hole, HashSet<PixelPoint> boundary){
         ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         List<Future<?>> futures = new ArrayList<>();
-        for (Point holePixel : hole) {
+        for (PixelPoint holePixel : hole) {
             Future<?> future = executor.submit(() -> {
                 double colorValue = this.culColor(holePixel, boundary);
                 synchronized (this.image) {
@@ -67,31 +66,31 @@ public class HoleFilling {
     }
 
     public Mat getFilledImage() {
-        Tuple<List<Point>, HashSet<Point>> holeBound = this.FindHoleAndBound();
-        if (holeBound == null || holeBound.getFirst() == null || holeBound.getSecond() == null) {
+        Tuple<List<PixelPoint>, HashSet<PixelPoint>> holeBound = this.FindHoleAndBound();
+        if (holeBound == null || holeBound.first() == null || holeBound.second() == null) {
             return null;
         }
 
-        List<Point> hole = holeBound.getFirst();
-        HashSet<Point> boundary = holeBound.getSecond();
+        List<PixelPoint> hole = holeBound.first();
+        HashSet<PixelPoint> boundary = holeBound.second();
         this.filledPixels(hole, boundary);
         return this.image;
 
     }
 
-    private Tuple<List<Point>, HashSet<Point>> BFS(int startRow, int startCol) {
-        Queue<Point> queue = new LinkedList<>();
-        HashSet<Point> visited = new HashSet<>();
-        List<Point> hole = new ArrayList<>();
-        HashSet<Point> boundary = new HashSet<>();
-        Point start = new Point(startCol, startRow);
+    private Tuple<List<PixelPoint>, HashSet<PixelPoint>> BFS(int startRow, int startCol) {
+        Queue<PixelPoint> queue = new LinkedList<>();
+        HashSet<PixelPoint> visited = new HashSet<>();
+        List<PixelPoint> hole = new ArrayList<>();
+        HashSet<PixelPoint> boundary = new HashSet<>();
+        PixelPoint start = new PixelPoint(startCol, startRow);
 
         visited.add(start);
         hole.add(start);
         queue.add(start);
         while (!queue.isEmpty()) {
-            Point current = queue.poll();
-            for (Point neighbor : this.connectivity.getNeighbors((int) current.getY(), (int) current.getX(), image.height(), image.width())) {
+            PixelPoint current = queue.poll();
+            for (PixelPoint neighbor : this.connectivity.getNeighbors((int) current.getY(), (int) current.getX(), image.height(), image.width())) {
                 if (!visited.contains(neighbor)) {
                     AddToHoleOrBoundary(queue, visited, hole, boundary, neighbor);
                 }
@@ -101,9 +100,9 @@ public class HoleFilling {
 
     }
 
-    private void AddToHoleOrBoundary(Queue<Point> queue, HashSet<Point> visited, List<Point> hole, HashSet<Point> boundary, Point neighbor) {
-        double pixelValue = image.get((int) neighbor.getY(), (int) neighbor.getX())[0];
-        if (pixelValue == -1) {
+    private void AddToHoleOrBoundary(Queue<PixelPoint> queue, HashSet<PixelPoint> visited, List<PixelPoint> hole, HashSet<PixelPoint> boundary, PixelPoint neighbor) {
+        neighbor.setColor(image.get((int) neighbor.getY(), (int) neighbor.getX())[0]);
+        if (neighbor.getColor() == -1) {
             hole.add(neighbor);
             queue.add(neighbor);
         } else {
@@ -112,7 +111,7 @@ public class HoleFilling {
         visited.add(neighbor);
     }
 
-    protected Tuple<List<Point>, HashSet<Point>> FindHoleAndBound() {
+    protected Tuple<List<PixelPoint>, HashSet<PixelPoint>> FindHoleAndBound() {
 
         for (int c = 0; c < this.image.width(); c++) {
             for (int r = 0; r < this.image.height(); r++) {
