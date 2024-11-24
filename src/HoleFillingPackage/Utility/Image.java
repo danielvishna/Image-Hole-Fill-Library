@@ -1,4 +1,4 @@
-package HoleFillingPackage;
+package HoleFillingPackage.Utility;
 
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
@@ -13,6 +13,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+
+/**
+ * Represents an image with utility methods for loading, saving,
+ * and applying masks for hole-filling operations.
+ */
 public class Image {
     String path;
     Mat image;
@@ -21,6 +26,11 @@ public class Image {
         this.path = path;
     }
 
+    /**
+     * Loads the image from the specified path.
+     *
+     * @return True if the image was successfully loaded; false otherwise.
+     */
     public boolean loadImage() {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
         Mat imageRGB = Imgcodecs.imread(this.path);
@@ -70,6 +80,11 @@ public class Image {
         this.path = path;
     }
 
+    /**
+     * Combines the image with a mask to create a hole.
+     *
+     * @param mask The mask matrix.
+     */
     public void combineImage(Mat mask) {
         ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         List<Future<?>> futures = new ArrayList<>();
@@ -98,11 +113,17 @@ public class Image {
         executor.shutdown();
     }
 
+    /**
+     * Saves the image to the specified path.
+     */
     public void saveImage(String path) {
         this.setPath(path);
         this.saveImage();
     }
 
+    /**
+     * Saves the image to the this.path
+     */
     public void saveImage() {
         ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         List<Future<?>> futures = new ArrayList<>();
@@ -132,6 +153,13 @@ public class Image {
         Imgcodecs.imwrite(path, image);
     }
 
+    /**
+     * Creates an Image instance with a hole applied based on the input image and mask.
+     *
+     * @param inputImagePath The file path to the input image.
+     * @param maskImagePath  The file path to the mask image, which defines the hole.
+     * @return An Image instance with the hole applied, or null if image loading fails.
+     */
     public static Image createMaskImage(String inputImagePath, String maskImagePath) {
         Image inputImage = new Image(inputImagePath);
         Image maskImage = new Image(maskImagePath);

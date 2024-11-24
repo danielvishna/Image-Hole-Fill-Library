@@ -1,5 +1,6 @@
 package HoleFillingPackage.tests;
 
+import HoleFillingPackage.Connectivity.FourConnectivity;
 import HoleFillingPackage.WeightingFunction.DefaultWeightingFunction;
 import HoleFillingPackage.Connectivity.EightConnectivity;
 import HoleFillingPackage.HoleFilling.HoleFilling;
@@ -29,6 +30,23 @@ class HoleFillingTests {
                 image,
                 new DefaultWeightingFunction(2, 0.01f),
                 new EightConnectivity()
+        );
+
+        Mat filledImage = holeFilling.getFilledImage();
+        assertNotNull(filledImage);
+        assertNotEquals(-1.0, filledImage.get(1, 1)[0]);
+    }
+
+    @Test
+    void testHoleFillingWithFourConnectivity() {
+        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+        Mat image = Mat.ones(3, 3, CvType.CV_32F);
+        image.put(1, 1, -1.0); // Hole in the center
+
+        HoleFilling holeFilling = new HoleFilling(
+                image,
+                new DefaultWeightingFunction(2, 0.01f),
+                new FourConnectivity()
         );
 
         Mat filledImage = holeFilling.getFilledImage();

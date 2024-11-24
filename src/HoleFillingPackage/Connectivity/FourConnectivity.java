@@ -1,11 +1,18 @@
 package HoleFillingPackage.Connectivity;
 
-import HoleFillingPackage.PixelPoint;
+import HoleFillingPackage.Utility.PixelPoint;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Implements four-way connectivity for determining neighboring pixels.
+ */
 public class FourConnectivity implements Connectivity {
+
+    /**
+     * Retrieves neighbors of a pixel using four-way connectivity.
+     */
     @Override
     public List<PixelPoint> getNeighbors(int row, int col, int maxRow, int maxCol) {
         List<PixelPoint> neighbors = new ArrayList<>();

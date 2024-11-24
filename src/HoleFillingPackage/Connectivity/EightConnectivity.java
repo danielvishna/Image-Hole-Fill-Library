@@ -1,11 +1,17 @@
 package HoleFillingPackage.Connectivity;
 
-import HoleFillingPackage.PixelPoint;
+import HoleFillingPackage.Utility.PixelPoint;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Implements eight-way connectivity for determining neighboring pixels.
+ */
 public class EightConnectivity implements Connectivity {
+    /**
+     * Retrieves neighbors of a pixel using eight-way connectivity.
+     */
     @Override
     public List<PixelPoint> getNeighbors(int row, int col, int maxRow, int maxCol) {
         List<PixelPoint> neighbors = new ArrayList<>();

@@ -1,7 +1,7 @@
 package HoleFillingPackage.HoleFilling;
 
 import HoleFillingPackage.Connectivity.Connectivity;
-import HoleFillingPackage.PixelPoint;
+import HoleFillingPackage.Utility.PixelPoint;
 import HoleFillingPackage.WeightingFunction.IWeightingFunction;
 import org.opencv.core.Mat;
 
@@ -11,6 +11,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+/**
+ * Performs the hole-filling operation using the specified connectivity and weighting function.
+ */
 public class HoleFilling {
 
     protected final Mat image;
@@ -23,8 +26,14 @@ public class HoleFilling {
         this.connectivity = connectivity;
     }
 
-
-    private double culColor(PixelPoint hole, HashSet<PixelPoint> boundary) {
+    /**
+     * Calculates the color value for a hole pixel based on the boundary.
+     *
+     * @param hole     The hole pixel.
+     * @param boundary The set of boundary pixels.
+     * @return The calculated color value for the hole pixel.
+     */
+    private double getPixelColor(PixelPoint hole, HashSet<PixelPoint> boundary) {
         double numerator = 0;
         double denominator = 0;
         for (PixelPoint boundaryPixel : boundary) {
@@ -35,12 +44,19 @@ public class HoleFilling {
         return numerator / denominator;
     }
 
+    /**
+     * Fills the pixels in the hole with calculated grayscale values based on the boundary pixels.
+     * This method uses multithreading to improve performance.
+     *
+     * @param hole A list of pixels representing the hole to be filled.
+     * @param boundary A set of boundary pixels surrounding the hole.
+     */
     protected void filledPixels(List<PixelPoint> hole, HashSet<PixelPoint> boundary) {
         ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         List<Future<?>> futures = new ArrayList<>();
         for (PixelPoint holePixel : hole) {
             Future<?> future = executor.submit(() -> {
-                double colorValue = this.culColor(holePixel, boundary);
+                double colorValue = this.getPixelColor(holePixel, boundary);
                 synchronized (this.image) {
                     this.image.put((int) holePixel.getY(), (int) holePixel.getX(), colorValue);
                 }
@@ -60,6 +76,11 @@ public class HoleFilling {
 
     }
 
+    /**
+     * Fills the hole in the image using the provided algorithm.
+     *
+     * @return The processed image with the hole filled.
+     */
     public Mat getFilledImage() {
         Tuple<List<PixelPoint>, HashSet<PixelPoint>> holeBound = this.FindHoleAndBound();
         if (holeBound == null || holeBound.first() == null || holeBound.second() == null) {
@@ -73,6 +94,15 @@ public class HoleFilling {
 
     }
 
+    /**
+     * Performs a breadth-first search (BFS) to find the hole and its boundary in the image.
+     *
+     * @param startRow The row index of the starting pixel in the hole.
+     * @param startCol The column index of the starting pixel in the hole.
+     * @return A tuple containing:
+     *         - A list of pixels representing the hole.
+     *         - A set of boundary pixels surrounding the hole.
+     */
     private Tuple<List<PixelPoint>, HashSet<PixelPoint>> BFS(int startRow, int startCol) {
         Queue<PixelPoint> queue = new LinkedList<>();
         HashSet<PixelPoint> visited = new HashSet<>();
@@ -95,6 +125,15 @@ public class HoleFilling {
 
     }
 
+    /**
+     * Determines whether a pixel is part of the hole or the boundary, and adds it to the appropriate collection.
+     *
+     * @param queue The queue used in the BFS algorithm for traversal.
+     * @param visited A set of visited pixels to avoid processing the same pixel multiple times.
+     * @param hole A list to store the pixels that belong to the hole.
+     * @param boundary A set to store the pixels that belong to the boundary.
+     * @param neighbor The pixel being evaluated.
+     */
     private void AddToHoleOrBoundary(Queue<PixelPoint> queue, HashSet<PixelPoint> visited, List<PixelPoint> hole, HashSet<PixelPoint> boundary, PixelPoint neighbor) {
         neighbor.setColor(image.get((int) neighbor.getY(), (int) neighbor.getX())[0]);
         if (neighbor.getColor() == -1) {
@@ -106,6 +145,11 @@ public class HoleFilling {
         visited.add(neighbor);
     }
 
+    /**
+     * Finds the hole and its boundary pixels.
+     *
+     * @return A tuple containing the hole pixels and boundary pixels.
+     */
     protected Tuple<List<PixelPoint>, HashSet<PixelPoint>> FindHoleAndBound() {
 
         for (int c = 0; c < this.image.width(); c++) {
